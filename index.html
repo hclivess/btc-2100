@@ -109,7 +109,8 @@
     </div>
 
     <div class="text-center text-gray-600 text-xs mb-4">
-        Pattern originally posted on 4chan /biz/, December 2023 · prices are the widely quoted daily closes ·
+        Pattern originally posted on 4chan /biz/, December 2023 · prices are the widely quoted cycle highs and
+        lows — peak and trough prints, not closing prices ·
         <a class="underline" href="https://github.com/hclivess/btc-2100">source and verification script</a>
     </div>
 </div>
@@ -125,7 +126,7 @@ const CYCLES = [
   {"cycle": 3, "atlDate": "2022-11-21", "atlPrice": 15460, "athDate": "2025-10-06", "athPrice": 126210}
 ];
 const PRE_PATTERN = [
-  {"date": "2009-10-05", "price": 0.00099, "label": "First trade"},
+  {"date": "2009-10-05", "price": 0.00099, "label": "First quoted rate"},
   {"date": "2010-11-06", "price": 0.39,    "label": "First ATH"},
   {"date": "2011-06-08", "price": 29.6,    "label": "First bubble"},
   {"date": "2011-11-18", "price": 2.14,    "label": "Crash"},
@@ -321,13 +322,17 @@ new Chart(document.getElementById("multChart"), {
     plugins: {legend: {labels: {color: "#9ca3af"}}}}
 });
 
+// the same real time axis as the price chart: these months are not evenly spaced either
 new Chart(document.getElementById("domChart"), {
   type: "line",
-  data: {labels: DOMINANCE.map(p => p.date),
-    datasets: [{label: "BTC dominance (%)", data: DOMINANCE.map(p => p.dom),
-      borderColor: "#a855f7", backgroundColor: "rgba(168,85,247,.1)", fill: true, tension: .3, pointRadius: 3}]},
+  data: {datasets: [{label: "BTC dominance (%)",
+    data: DOMINANCE.map(p => ({x: decimalYear(p.date + "-01"), y: p.dom})),
+    borderColor: "#a855f7", backgroundColor: "rgba(168,85,247,.1)", fill: true, tension: .3, pointRadius: 3}]},
   options: {responsive: true, maintainAspectRatio: false,
-    scales: {y: {...axis, min: 30, max: 90}, x: axis}, plugins: {legend: {labels: {color: "#9ca3af"}}}}
+    scales: {y: {...axis, min: 30, max: 90},
+             x: {...axis, type: "linear", ticks: {color: "#9ca3af", callback: v => Math.round(v)}}},
+    plugins: {legend: {labels: {color: "#9ca3af"}},
+              tooltip: {callbacks: {title: c => c[0].parsed.x.toFixed(1), label: c => c.parsed.y + "%"}}}}
 });
 </script>
 </body>

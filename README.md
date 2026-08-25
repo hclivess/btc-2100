@@ -80,6 +80,9 @@ node check_page.mjs     # runs the page's own script headlessly: finite values, 
 `verify.py` also refuses any hand-typed money figure in the visible markup, which is exactly how "127M%"
 and "$425K" survived in the first place. Both run in CI on every push.
 
+The prices are the widely quoted cycle highs and lows — peak and trough prints rather than closing prices,
+which is what everyone means by "the 2021 top was $69K" and worth stating rather than leaving implied.
+
 ## Not investment advice
 
 Three cycles is three data points. One prediction landing is one prediction landing — the forecasts that
