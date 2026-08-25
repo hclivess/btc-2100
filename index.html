@@ -5,14 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>1064 / 364 — the Bitcoin cycle rule</title>
     <meta name="description" content="The Bitcoin cycle rule: days from bottom to top and back down, the three cycles it fits, and every date it points at to 2100.">
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background: #111827; }
-        th, td { padding: .3rem .6rem; }
+        /* The handful of utility classes this page uses, written out. The Tailwind CDN build compiles CSS
+           in the browser on every visit and says in the console that it is not for production; for one
+           page with fifteen classes it was three hundred kilobytes to avoid forty lines. */
+        *, *::before, *::after { box-sizing: border-box; }
+        body { background: #111827; color: #fff; margin: 0; padding: 1rem; min-height: 100vh;
+               font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        a { color: inherit; }
+        .max-w-5xl { max-width: 64rem; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .mb-1 { margin-bottom: .25rem; } .mb-2 { margin-bottom: .5rem; } .mb-3 { margin-bottom: .75rem; }
+        .mb-4 { margin-bottom: 1rem; }  .mb-6 { margin-bottom: 1.5rem; } .mt-3 { margin-top: .75rem; }
+        .p-4 { padding: 1rem; }
+        .bg-gray-800 { background: #1f2937; }
+        .rounded-lg { border-radius: .5rem; }
+        .font-bold { font-weight: 700; } .font-semibold { font-weight: 600; }
+        .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace; }
+        .text-xs { font-size: .75rem; }  .text-sm { font-size: .875rem; } .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; } .text-4xl { font-size: 2.25rem; line-height: 1.1; }
+        .text-white { color: #fff; }        .text-gray-300 { color: #d1d5db; }
+        .text-gray-400 { color: #9ca3af; }  .text-gray-500 { color: #6b7280; }
+        .text-gray-600 { color: #4b5563; }  .text-green-400 { color: #4ade80; }
+        .text-red-400 { color: #f87171; }   .text-yellow-300 { color: #fde047; }
+        .text-yellow-400 { color: #facc15; }
+        .underline { text-decoration: underline; }
+        .overflow-x-auto { overflow-x: auto; }
+        .w-full { width: 100%; }
+        .h-72 { height: 18rem; }
+        table { border-collapse: collapse; }
+        th, td { padding: .3rem .6rem; white-space: nowrap; }
+        .border-b { border-bottom: 1px solid; }
+        .border-gray-700 { border-color: #374151; }
+        .border-gray-700\/50 { border-color: rgba(55, 65, 81, .5); }
+        h1, h2, p, ul { margin: 0 0 .5rem; }
+        @media (min-width: 768px) { .md\:text-6xl { font-size: 3.75rem; } }
     </style>
 </head>
-<body class="text-white min-h-screen p-4">
+<body>
 <div class="max-w-5xl mx-auto">
 
     <div class="text-center mb-6">

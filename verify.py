@@ -70,7 +70,8 @@ def main() -> int:
     # of this page before this one said "127M%" where the arithmetic gives 12.7 billion per cent, and
     # "$425K" for a 2100 projection its own loop never produced. Figures inside the script are computed
     # from the data and are checked by check_page.mjs instead.
-    markup = text.split("<script>", 1)[0]
+    # the stylesheet is not prose: "width: 100%" is not a claim about Bitcoin
+    markup = re.sub(r"<style[^>]*>.*?</style>", "", text.split("<script>", 1)[0], flags=re.S)
     typed = (re.findall(r"\$[\d][\d,.]*\s?[KMB]?", markup)          # money
              + re.findall(r"(?<![\w-])\d[\d,.]*\s?[KMB]?\s?%", markup)   # percentages, "127M%" included
              + re.findall(r"(?<![\w-])\d[\d,.]*\s?×", markup)        # multipliers
