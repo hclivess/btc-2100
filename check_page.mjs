@@ -4,7 +4,7 @@
  *     node check_page.mjs
  *
  * There are no charts and no DOM here — the point is the arithmetic that fills them. A chart that plots
- * NaN, an Infinity from a division, or a scenario that produces no points at all are all things that look
+ * NaN, an Infinity from a division, or a schedule that produces no turns at all are all things that look
  * fine in the source and wrong on the screen, and all three are caught here.
  */
 import { readFileSync } from "node:fs";
