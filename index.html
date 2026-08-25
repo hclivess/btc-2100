@@ -3,122 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The 1064/364 Bitcoin cycle pattern — what it actually says</title>
-    <meta name="description" content="Three Bitcoin cycles, the 1064/364 day pattern, and what extrapolating it honestly implies for 2100.">
+    <title>1064 / 364 — the Bitcoin cycle rule</title>
+    <meta name="description" content="The Bitcoin cycle rule: days from bottom to top and back down, the three cycles it fits, and every date it points at to 2100.">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { background: #111827; }
-        th, td { padding: .25rem .5rem; }
+        th, td { padding: .3rem .6rem; }
     </style>
 </head>
 <body class="text-white min-h-screen p-4">
-<div class="max-w-6xl mx-auto">
+<div class="max-w-5xl mx-auto">
 
     <div class="text-center mb-6">
-        <h1 class="text-3xl md:text-4xl font-bold mb-2">The 1064/364 Bitcoin cycle pattern</h1>
-        <p class="text-gray-400">Three cycles of evidence, and what extrapolating them honestly implies</p>
-        <p id="nextTest" class="text-yellow-300 text-sm mt-2"></p>
+        <h1 id="ruleTitle" class="text-4xl md:text-6xl font-bold mb-3 font-mono"></h1>
+        <p class="text-gray-300 text-lg" id="ruleLine"></p>
+        <p id="nextTest" class="text-yellow-300 mt-3"></p>
     </div>
 
-    <!-- ============ the claim, checked ============ -->
+    <!-- the rule against the cycles it is drawn from -->
     <div class="bg-gray-800 rounded-lg p-4 mb-6">
-        <h2 class="text-xl font-semibold mb-3 text-yellow-400">The claim, and what the dates say</h2>
-        <p class="text-gray-300 text-sm mb-3">
-            The pattern says a bull run lasts <b id="claimBull"></b> from the bottom and the bear that follows
-            lasts <b id="claimBear"></b>. Posted on /biz/ in December 2023, it named a date for the next top nearly two years
-            ahead. That is worth checking rather than celebrating, so here it is checked: every anchor the
-            prediction could have been chained from, and how far each lands from the top that actually happened.
-        </p>
+        <h2 class="text-xl font-semibold mb-3 text-yellow-400">The three cycles it is drawn from</h2>
         <div class="overflow-x-auto text-sm">
             <table class="w-full"><thead><tr class="text-gray-400 border-b border-gray-700">
-                <th class="text-left">Chained from</th><th class="text-left">Predicts</th>
-                <th class="text-right">Actual top</th><th class="text-right">Miss</th></tr></thead>
+                <th class="text-left">#</th><th class="text-left">Bottom</th><th class="text-left">Top</th>
+                <th class="text-right">Bull</th><th class="text-right" id="vsBull"></th>
+                <th class="text-right">Bear</th><th class="text-right" id="vsBear"></th></tr></thead>
+                <tbody id="cycleTable"></tbody></table>
+        </div>
+        <p class="text-gray-400 text-xs mt-3" id="cycleNote"></p>
+    </div>
+
+    <!-- the turns, drawn where they fall in time -->
+    <div class="bg-gray-800 rounded-lg p-4 mb-6">
+        <h2 class="text-xl font-semibold mb-1 text-yellow-400">Every turn the rule points at</h2>
+        <p class="text-gray-400 text-xs mb-2">Bottoms in red, tops in green. Solid to the 2025 top — the part
+            that happened — then the rule, run forward on a real time axis.</p>
+        <div class="h-72"><canvas id="turnChart"></canvas></div>
+    </div>
+
+    <!-- the schedule -->
+    <div class="bg-gray-800 rounded-lg p-4 mb-6">
+        <h2 class="text-xl font-semibold mb-3 text-yellow-400">The schedule to 2100</h2>
+        <div class="overflow-x-auto text-sm">
+            <table class="w-full"><thead><tr class="text-gray-400 border-b border-gray-700">
+                <th class="text-left">Cycle</th><th class="text-left">Bottom</th><th class="text-left">Top</th>
+                <th class="text-right">Days from now</th></tr></thead><tbody id="scheduleTable"></tbody></table>
+        </div>
+    </div>
+
+    <!-- how well it called the last one -->
+    <div class="bg-gray-800 rounded-lg p-4 mb-6">
+        <h2 class="text-xl font-semibold mb-3 text-yellow-400">How well it called the 2025 top</h2>
+        <div class="overflow-x-auto text-sm">
+            <table class="w-full"><thead><tr class="text-gray-400 border-b border-gray-700">
+                <th class="text-left">Counted from</th><th class="text-left">Points at</th>
+                <th class="text-right">Actual</th><th class="text-right">Miss</th></tr></thead>
                 <tbody id="anchorTable"></tbody></table>
         </div>
         <p class="text-gray-400 text-xs mt-3" id="anchorNote"></p>
     </div>
 
-    <!-- ============ price chart ============ -->
-    <div class="bg-gray-800 rounded-lg p-4 mb-6">
-        <h2 class="text-xl font-semibold mb-1 text-yellow-400">Price, and three ways of extending the pattern</h2>
-        <p class="text-gray-400 text-xs mb-2">Log price on a <b>real time axis</b> — 2009 to 2026 takes the width
-            it deserves instead of one step per label.</p>
-        <div class="h-96"><canvas id="priceChart"></canvas></div>
-    </div>
-
-    <!-- ============ scenarios ============ -->
-    <div class="bg-gray-800 rounded-lg p-4 mb-6">
-        <h2 class="text-xl font-semibold mb-3 text-yellow-400">Where a number for 2100 comes from</h2>
-        <p class="text-gray-300 text-sm mb-3">
-            Every projection of this kind is an assumption wearing a chart. Each cycle has multiplied the bottom
-            by less than the one before — <span id="multiplierList"></span> — and the completed drawdowns were
-            <span id="drawdownList"></span>. What 2100 looks like depends entirely on how those two series are continued, so three
-            continuations are drawn, and each says which of its numbers were <b>fitted</b> to the three observed
-            cycles and which were simply <b>chosen</b>.
-        </p>
-        <div class="grid md:grid-cols-3 gap-3" id="scenarioCards"></div>
-        <p class="text-gray-400 text-xs mt-3" id="spreadNote"></p>
-    </div>
-
-    <!-- ============ cycles ============ -->
-    <div class="grid md:grid-cols-2 gap-6 mb-6">
-        <div class="bg-gray-800 rounded-lg p-4">
-            <h2 class="text-lg font-semibold mb-3 text-yellow-400">The three cycles, measured</h2>
-            <div class="overflow-x-auto text-sm">
-                <table class="w-full"><thead><tr class="text-gray-400 border-b border-gray-700">
-                    <th class="text-left">#</th><th class="text-left">Bottom</th><th class="text-left">Top</th>
-                    <th class="text-right">Bull</th><th class="text-right">×</th><th class="text-right">Bear</th>
-                    <th class="text-right">Drop</th></tr></thead><tbody id="cycleTable"></tbody></table>
-            </div>
-            <p class="text-gray-400 text-xs mt-3" id="cycleNote"></p>
-        </div>
-        <div class="bg-gray-800 rounded-lg p-4">
-            <h2 class="text-lg font-semibold mb-2 text-yellow-400">How fast the multiplier is fading</h2>
-            <div class="h-56"><canvas id="multChart"></canvas></div>
-            <p class="text-gray-400 text-xs mt-2" id="fitNote"></p>
-        </div>
-    </div>
-
-    <!-- ============ dominance ============ -->
-    <div class="bg-gray-800 rounded-lg p-4 mb-6">
-        <h2 class="text-xl font-semibold mb-1 text-purple-400">BTC dominance</h2>
-        <p class="text-gray-400 text-xs mb-2">Approximate month-end figures, rounded, for shape only. An
-            "altseason" is one of the dips — money leaving Bitcoin for everything else. There is no altseason
-            index on this page because the ones in circulation are not comparable across years.</p>
-        <div class="h-64"><canvas id="domChart"></canvas></div>
-    </div>
-
-    <!-- ============ caveats ============ -->
-    <div class="bg-gray-800 rounded-lg p-4 mb-6">
-        <h2 class="text-lg font-semibold mb-3 text-red-400">What this is not</h2>
-        <ul class="text-gray-300 text-sm space-y-2 list-disc list-inside">
-            <li><b>Three cycles is three data points.</b> Two differences between the bull multipliers, one ratio
-                between those differences. Nothing here can be tested for significance; a pattern that has
-                repeated three times is a pattern that has not failed yet.</li>
-            <li><b>One prediction landing is one prediction landing.</b> It was a good hit — the table above says
-                how good — but a single confirmed forecast is the weakest evidence there is, because the
-                forecasts that missed are not collected anywhere.</li>
-            <li><b>A number for 2100 is an assumption, not a finding.</b> The three continuations above start
-                from identical history and end orders of magnitude apart. Anyone quoting one of them as
-                <i>the</i> projection is quoting their own assumption.</li>
-            <li><b>The bottom the pattern points at has not been confirmed here</b> — <span id="caveatNext"></span> —
-                and its depth is a guess in every scenario on this page.</li>
-            <li>Pattern extrapolation, published for interest. Not investment advice.</li>
-        </ul>
-    </div>
-
     <div class="text-center text-gray-600 text-xs mb-4">
-        Pattern originally posted on 4chan /biz/, December 2023 · prices are the widely quoted cycle highs and
-        lows — peak and trough prints, not closing prices ·
-        <a class="underline" href="https://github.com/hclivess/btc-2100">source and verification script</a>
+        Pattern originally posted on 4chan /biz/, December 2023 · dates are the widely quoted cycle highs and
+        lows · <a class="underline" href="https://github.com/hclivess/btc-2100">source</a> ·
+        pattern extrapolation, not investment advice
     </div>
 </div>
 
 <script>
 // ============================================================ DATA
-// The only hand-entered numbers on this page. Everything else is computed from them, so no figure in the
-// text can drift out of step with the data; verify.py reads this block and checks the arithmetic.
+// The only hand-entered numbers here. Everything shown is computed from them; verify.py checks that.
 /* CYCLES-BEGIN */
 const CYCLES = [
   {"cycle": 1, "atlDate": "2015-01-14", "atlPrice": 170,   "athDate": "2017-12-17", "athPrice": 19783},
@@ -127,222 +82,118 @@ const CYCLES = [
 ];
 const PRE_PATTERN = [
   {"date": "2009-10-05", "price": 0.00099, "label": "First quoted rate"},
-  {"date": "2010-11-06", "price": 0.39,    "label": "First ATH"},
   {"date": "2011-06-08", "price": 29.6,    "label": "First bubble"},
   {"date": "2011-11-18", "price": 2.14,    "label": "Crash"},
   {"date": "2013-12-04", "price": 1156,    "label": "2013 top"}
 ];
-const DOMINANCE = [
-  {"date": "2017-01", "dom": 87}, {"date": "2017-12", "dom": 55}, {"date": "2018-01", "dom": 38},
-  {"date": "2019-01", "dom": 52}, {"date": "2020-01", "dom": 68}, {"date": "2021-01", "dom": 70},
-  {"date": "2021-05", "dom": 42}, {"date": "2021-11", "dom": 43}, {"date": "2022-06", "dom": 46},
-  {"date": "2023-01", "dom": 42}, {"date": "2024-01", "dom": 52}, {"date": "2024-11", "dom": 59},
-  {"date": "2025-08", "dom": 57}, {"date": "2025-10", "dom": 59}
-];
 const PATTERN = {"bullDays": 1064, "bearDays": 364};
-// The 19 [bull multiplier, drawdown] pairs the 2026 version of this page used. Not fitted to anything:
-// kept here exactly as they were so the third scenario is that page's own arithmetic, not an impression of it.
-const LEGACY_PARAMS = [
-  [4.0, 0.75], [3.5, 0.65], [3.0, 0.55], [2.6, 0.50], [2.3, 0.45], [2.1, 0.42], [1.9, 0.38],
-  [1.8, 0.35], [1.7, 0.32], [1.6, 0.30], [1.55, 0.28], [1.5, 0.26], [1.45, 0.24], [1.4, 0.22],
-  [1.35, 0.20], [1.32, 0.18], [1.30, 0.16], [1.28, 0.15], [1.25, 0.14]
-];
 /* CYCLES-END */
 
-// ============================================================ DERIVED
+// ============================================================ THE RULE
 const DAY = 86400000;
 const d = s => new Date(s + "T00:00:00Z");
 const days = (a, b) => Math.round((d(b) - d(a)) / DAY);
 const addDays = (s, n) => new Date(d(s).getTime() + n * DAY).toISOString().slice(0, 10);
 const decimalYear = s => { const t = d(s); return t.getUTCFullYear() + (t - Date.UTC(t.getUTCFullYear(), 0, 1)) / (365.25 * DAY); };
-const money = v => v >= 1e6 ? "$" + (v / 1e6).toFixed(1) + "M" : v >= 1000 ? "$" + Math.round(v).toLocaleString()
-                 : v >= 1 ? "$" + v.toFixed(0) : "$" + v.toFixed(5);
-const median = xs => { const s = [...xs].sort((a, b) => a - b); return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2; };
+const money = v => v >= 1000 ? "$" + Math.round(v).toLocaleString() : v >= 1 ? "$" + v.toFixed(0) : "$" + v.toFixed(5);
+const cycleDays = PATTERN.bullDays + PATTERN.bearDays;
+
+document.getElementById("ruleTitle").textContent = `${PATTERN.bullDays} / ${PATTERN.bearDays}`;
+document.getElementById("vsBull").textContent = "vs " + PATTERN.bullDays;
+document.getElementById("vsBear").textContent = "vs " + PATTERN.bearDays;
+document.getElementById("ruleLine").textContent =
+  `${PATTERN.bullDays} days from the bottom to the top, ${PATTERN.bearDays} back down. ` +
+  `A cycle of ${cycleDays} days — ${(cycleDays / 365.2425).toFixed(2)} years.`;
 
 const measured = CYCLES.map((c, i) => ({
   ...c,
   bullDays: days(c.atlDate, c.athDate),
-  multiple: c.athPrice / c.atlPrice,
-  bearDays: CYCLES[i + 1] ? days(c.athDate, CYCLES[i + 1].atlDate) : null,
-  drawdown: CYCLES[i + 1] ? 1 - CYCLES[i + 1].atlPrice / c.athPrice : null
+  bearDays: CYCLES[i + 1] ? days(c.athDate, CYCLES[i + 1].atlDate) : null
 }));
+const lastTop = measured[measured.length - 1];
 const bullDays = measured.map(c => c.bullDays);
 const bearDays = measured.filter(c => c.bearDays).map(c => c.bearDays);
-const drawdowns = measured.filter(c => c.drawdown !== null).map(c => c.drawdown);
-const lastTop = measured[measured.length - 1];
 
-// how fast the bull multiplier is fading: the difference of the logs, one cycle to the next
-const logs = measured.map(c => Math.log10(c.multiple));
-const steps = logs.slice(1).map((v, i) => v - logs[i]);
-const decay = steps[steps.length - 1] / steps[0];          // ≈ 0.6 across the three cycles so far
-const medianBull = median(bullDays), medianBear = median(bearDays), medianDrop = median(drawdowns);
-
-// ============================================================ SCENARIOS
-function project(rule, firstDrop, label, colour, fitted, chosen) {
-  // rule(i, previous multiplier, previous drawdown) -> [multiplier, drawdown for the bear that follows]
-  const points = [];
-  let mult = Math.pow(10, logs[logs.length - 1]), drop = firstDrop;
-  let atl = lastTop.athPrice * (1 - drop);
-  let atlDate = addDays(lastTop.athDate, medianBear);
-  points.push({date: atlDate, price: atl, kind: "ATL"});
-  for (let i = 0; i < 40; i++) {
-    [mult, drop] = rule(i, mult, drop);
-    if (mult === undefined) break;
-    const athDate = addDays(atlDate, medianBull);
-    if (+athDate.slice(0, 4) > 2100) break;
-    const ath = atl * mult;
-    points.push({date: athDate, price: ath, kind: "ATH"});
-    atl = ath * (1 - drop);
-    atlDate = addDays(athDate, medianBear);
-    if (+atlDate.slice(0, 4) <= 2100) points.push({date: atlDate, price: atl, kind: "ATL"});
-  }
-  const tops = points.filter(p => p.kind === "ATH");
-  const belowThousand = tops.find(p => p.price < 1000);
-  return {label, colour, points, fitted, chosen,
-          peak: Math.max(...tops.map(p => p.price)), end: tops[tops.length - 1].price,
-          endDate: tops[tops.length - 1].date, diesBy: belowThousand ? belowThousand.date.slice(0, 4) : null};
+// the turns from the last top to the end of the century
+const schedule = [];
+let top = lastTop.athDate, n = lastTop.cycle;
+while (+top.slice(0, 4) <= 2100) {
+  const bottom = addDays(top, PATTERN.bearDays);
+  const next = addDays(bottom, PATTERN.bullDays);
+  if (+bottom.slice(0, 4) > 2100) break;
+  schedule.push({cycle: ++n, bottom, top: next});
+  top = next;
 }
 
-// the fitted decay, applied to the multiplier: each cycle's step on the log scale is `decay` times the last
-const fade = m => Math.pow(10, Math.log10(m) * decay);
+// ============================================================ THE PAGE
+const off = s => Math.round((d(s) - Date.now()) / DAY);
+const nextTurn = schedule[0];
+document.getElementById("nextTest").textContent = off(nextTurn.bottom) > 0
+  ? `Next: bottom on ${nextTurn.bottom}, ${off(nextTurn.bottom)} days away. Top after it on ${nextTurn.top}.`
+  : `Bottom was due ${nextTurn.bottom} (${-off(nextTurn.bottom)} days ago). Next top: ${nextTurn.top}.`;
 
-const scenarios = [
-  project((i, m) => [fade(m), medianDrop], medianDrop,
-    "Drawdowns stay as deep as they have been", "#ef4444",
-    "the multiplier decay (×" + decay.toFixed(2) + " a cycle) and both cycle lengths",
-    `that the ${(medianDrop * 100).toFixed(0)}% drawdown never softens`),
-  project((i, m, dr) => [fade(m), dr * decay], medianDrop,
-    "Drawdowns soften at the same rate", "#22c55e",
-    "the multiplier decay, both cycle lengths and the first drawdown",
-    "that drawdowns fade at exactly the rate the multipliers do"),
-  project(i => LEGACY_PARAMS[i] || [], LEGACY_PARAMS[0][1],
-    "Hand-picked parameters (what this page used to show)", "#a855f7",
-    "nothing",
-    "all nineteen multipliers and drawdowns, chosen to keep the line rising")
-];
-
-// ============================================================ THE PREDICTION, AUDITED
-const anchors = [
-  {from: "the 2022 bottom + 1064 days", date: addDays(CYCLES[2].atlDate, PATTERN.bullDays)},
-  {from: "the 2021 top + 364 + 1064 days", date: addDays(addDays(CYCLES[1].athDate, PATTERN.bearDays), PATTERN.bullDays)},
-  {from: "the 2018 bottom + two full cycles", date: addDays(CYCLES[1].atlDate, 2 * (PATTERN.bullDays + PATTERN.bearDays))},
-  {from: "the 2015 bottom + three full cycles", date: addDays(CYCLES[0].atlDate, 3 * (PATTERN.bullDays + PATTERN.bearDays))}
-];
-const offsets = anchors.map(a => days(lastTop.athDate, a.date));
-const misses = offsets.map(Math.abs);
-document.getElementById("anchorTable").innerHTML = anchors.map((a, i) => `
-  <tr class="border-b border-gray-700/50">
-    <td class="text-gray-300">${a.from}</td><td class="font-mono">${a.date}</td>
-    <td class="text-right font-mono text-gray-400">${lastTop.athDate}</td>
-    <td class="text-right font-mono ${misses[i] <= 7 ? "text-green-400" : misses[i] <= 30 ? "text-yellow-400" : "text-red-400"}">
-      ${offsets[i] > 0 ? "+" : ""}${offsets[i]} d</td></tr>`).join("");
-document.getElementById("anchorNote").textContent =
-  `Best anchor: ${anchors[misses.indexOf(Math.min(...misses))].from} — ${Math.min(...misses)} days from the top that ` +
-  `actually happened, called about two years ahead. Worst: ${Math.max(...misses)} days. "Exact date" it was not, and ` +
-  `what would settle it is which anchor was named in advance: after the fact, one of four can always be chosen.`;
-
-// the prose that quotes numbers is filled from the data, like everything else
-document.getElementById("claimBull").textContent = PATTERN.bullDays + " days";
-document.getElementById("claimBear").textContent = PATTERN.bearDays + " days";
-document.getElementById("multiplierList").textContent =
-  measured.map(c => c.multiple.toFixed(c.multiple >= 100 ? 0 : 0) + "×").join(", then ");
-document.getElementById("drawdownList").textContent =
-  drawdowns.length ? drawdowns.map(x => (x * 100).toFixed(0) + "%").join(" and ") : "not yet measurable";
-
-// the next test of the pattern
-const nextATL = addDays(lastTop.athDate, PATTERN.bearDays);
-const nextATH = addDays(nextATL, PATTERN.bullDays);
-const until = Math.round((d(nextATL) - Date.now()) / DAY);
-document.getElementById("caveatNext").textContent = until > 0
-  ? `it is due on ${nextATL}, ${until} days from now` : `it was due on ${nextATL}`;
-document.getElementById("nextTest").textContent = until > 0
-  ? `Next test: the pattern puts the bottom on ${nextATL} — ${until} days away — and the top after it on ${nextATH}.`
-  : `The pattern put the bottom on ${nextATL} (${-until} days ago) and puts the next top on ${nextATH}.`;
-
-// ============================================================ TABLES
+const near = n => Math.abs(n) <= 7 ? "text-green-400" : Math.abs(n) <= 21 ? "text-yellow-400" : "text-red-400";
 document.getElementById("cycleTable").innerHTML = measured.map(c => `
   <tr class="border-b border-gray-700/50">
     <td>${c.cycle}</td><td class="font-mono text-red-400">${c.atlDate}</td>
     <td class="font-mono text-green-400">${c.athDate}</td>
-    <td class="text-right font-mono ${Math.abs(c.bullDays - PATTERN.bullDays) <= 7 ? "text-green-400" : "text-yellow-400"}">${c.bullDays} d</td>
-    <td class="text-right font-mono">${c.multiple.toFixed(1)}×</td>
-    <td class="text-right font-mono ${c.bearDays === null ? "text-gray-500" : Math.abs(c.bearDays - PATTERN.bearDays) <= 7 ? "text-green-400" : "text-yellow-400"}">${c.bearDays === null ? "pending" : c.bearDays + " d"}</td>
-    <td class="text-right font-mono ${c.drawdown === null ? "text-gray-500" : ""}">${c.drawdown === null ? "pending" : (c.drawdown * 100).toFixed(0) + "%"}</td></tr>`).join("");
+    <td class="text-right font-mono">${c.bullDays} d</td>
+    <td class="text-right font-mono ${near(c.bullDays - PATTERN.bullDays)}">${c.bullDays - PATTERN.bullDays > 0 ? "+" : ""}${c.bullDays - PATTERN.bullDays}</td>
+    <td class="text-right font-mono">${c.bearDays === null ? "pending" : c.bearDays + " d"}</td>
+    <td class="text-right font-mono ${c.bearDays === null ? "text-gray-500" : near(c.bearDays - PATTERN.bearDays)}">${c.bearDays === null ? "—" : (c.bearDays - PATTERN.bearDays > 0 ? "+" : "") + (c.bearDays - PATTERN.bearDays)}</td>
+  </tr>`).join("");
 document.getElementById("cycleNote").textContent =
-  `Bull runs: ${bullDays.join(", ")} days against the 1064 claimed — a spread of ${Math.max(...bullDays) - Math.min(...bullDays)} days. ` +
-  `Bears: ${bearDays.join(", ")} against 364. The pattern is good to a fortnight, not to the day, and the third ` +
-  `cycle — the one it called in advance — is the furthest of the three from 1064.`;
-document.getElementById("fitNote").textContent =
-  `Each cycle multiplies the bottom by less: ${measured.map(c => c.multiple.toFixed(1) + "×").join(", ")}. On a log scale ` +
-  `the steps between them shrink by a factor of ${decay.toFixed(2)}, and that single number — two differences between ` +
-  `three points — is the whole fit. Continued, it takes the multiplier to 1× and growth to nothing.`;
+  `Bull runs of ${bullDays.join(", ")} days against ${PATTERN.bullDays}; bears of ${bearDays.join(", ")} against ` +
+  `${PATTERN.bearDays}. The rule holds to a fortnight, not to the day — and the cycle it called in advance is ` +
+  `the one furthest from ${PATTERN.bullDays}.`;
 
-document.getElementById("scenarioCards").innerHTML = scenarios.map(s => `
-  <div class="rounded p-3 border" style="border-color:${s.colour}">
-    <div class="font-semibold mb-1" style="color:${s.colour}">${s.label}</div>
-    <div class="text-2xl font-mono mb-1">${s.diesBy ? "→ nothing" : money(s.end)}</div>
-    <div class="text-gray-400 text-xs mb-2">${s.diesBy
-        ? `under $1,000 by ${s.diesBy} and falling; highest along the way ${money(s.peak)}`
-        : `last top of the century (${s.endDate.slice(0, 4)}); highest along the way ${money(s.peak)}`}</div>
-    <div class="text-gray-300 text-xs"><b>Fitted:</b> ${s.fitted}</div>
-    <div class="text-gray-300 text-xs"><b>Chosen:</b> ${s.chosen}</div>
-  </div>`).join("");
-const alive = scenarios.filter(s => !s.diesBy);
-const dying = scenarios.filter(s => s.diesBy);
-document.getElementById("spreadNote").textContent =
-  `Same three cycles, same 1064/364 pattern: ` +
-  (dying.length ? `${dying.length === 1 ? "one of these continuations reaches" : dying.length + " of these continuations reach"}` +
-                  ` the end of the century at nothing, while ` : "") +
-  `the others land between ${money(Math.min(...alive.map(s => s.end)))} and ${money(Math.max(...alive.map(s => s.end)))}. ` +
-  `The distance between them is not evidence about Bitcoin; it is the two rules nobody can fit to three data ` +
-  `points. What the fitted part does say is narrower and duller: the multiplier is heading for 1×, so on this ` +
-  `pattern's own terms the ceiling is not far above where the price already is.`;
+document.getElementById("scheduleTable").innerHTML = schedule.map(row => `
+  <tr class="border-b border-gray-700/50">
+    <td>${row.cycle}</td><td class="font-mono text-red-400">${row.bottom}</td>
+    <td class="font-mono text-green-400">${row.top}</td>
+    <td class="text-right font-mono text-gray-400">${off(row.bottom).toLocaleString()}</td></tr>`).join("");
 
-// ============================================================ CHARTS
-const history = [...PRE_PATTERN.map(p => ({date: p.date, price: p.price})),
-                 ...CYCLES.flatMap(c => [{date: c.atlDate, price: c.atlPrice}, {date: c.athDate, price: c.athPrice}])]
-                 .sort((a, b) => d(a.date) - d(b.date));
+const anchors = [
+  {from: `the 2022 bottom + ${PATTERN.bullDays}`, date: addDays(CYCLES[2].atlDate, PATTERN.bullDays)},
+  {from: `the 2021 top + ${PATTERN.bearDays} + ${PATTERN.bullDays}`, date: addDays(addDays(CYCLES[1].athDate, PATTERN.bearDays), PATTERN.bullDays)},
+  {from: "the 2018 bottom + two cycles", date: addDays(CYCLES[1].atlDate, 2 * cycleDays)},
+  {from: "the 2015 bottom + three cycles", date: addDays(CYCLES[0].atlDate, 3 * cycleDays)}
+];
+const offsets = anchors.map(a => days(lastTop.athDate, a.date));
+document.getElementById("anchorTable").innerHTML = anchors.map((a, i) => `
+  <tr class="border-b border-gray-700/50">
+    <td class="text-gray-300">${a.from}</td><td class="font-mono">${a.date}</td>
+    <td class="text-right font-mono text-gray-400">${lastTop.athDate}</td>
+    <td class="text-right font-mono ${near(offsets[i])}">${offsets[i] > 0 ? "+" : ""}${offsets[i]} d</td></tr>`).join("");
+const best = offsets.map(Math.abs).indexOf(Math.min(...offsets.map(Math.abs)));
+document.getElementById("anchorNote").textContent =
+  `Closest: ${anchors[best].from}, ${Math.abs(offsets[best])} days out, roughly two years ahead of the event. ` +
+  `Which of these was the one named in December 2023 is what decides how good the call was, because after the ` +
+  `fact any of four can be picked.`;
+
+// ============================================================ CHART
+const history = [...PRE_PATTERN.map(p => ({date: p.date, price: p.price, kind: "old"})),
+  ...CYCLES.flatMap(c => [{date: c.atlDate, price: c.atlPrice, kind: "ATL"},
+                          {date: c.athDate, price: c.athPrice, kind: "ATH"}])].sort((a, b) => d(a.date) - d(b.date));
 const axis = {ticks: {color: "#9ca3af"}, grid: {color: "#374151"}};
-new Chart(document.getElementById("priceChart"), {
-  type: "line",
+// the future turns carry no price: the rule is about dates, so they sit on the last known price
+const futureTurns = schedule.flatMap(r => [{date: r.bottom, kind: "ATL"}, {date: r.top, kind: "ATH"}])
+                            .filter(t => +t.date.slice(0, 4) <= 2100);
+new Chart(document.getElementById("turnChart"), {
   data: {datasets: [
-    {label: "Actual", data: history.map(p => ({x: decimalYear(p.date), y: p.price})),
-     borderColor: "#f97316", backgroundColor: "rgba(249,115,22,.1)", fill: true, tension: .25, pointRadius: 3},
-    ...scenarios.map(s => ({label: s.label,
-      data: [{x: decimalYear(lastTop.athDate), y: lastTop.athPrice},
-             ...s.points.map(p => ({x: decimalYear(p.date), y: Math.max(p.price, 0.01)}))],
-      borderColor: s.colour, borderDash: [6, 4], pointRadius: 0, tension: .25, fill: false}))]},
+    {type: "line", label: "Price at each turn", data: history.map(p => ({x: decimalYear(p.date), y: p.price})),
+     borderColor: "#f97316", backgroundColor: "rgba(249,115,22,.1)", fill: true, tension: .25,
+     pointRadius: 4, pointBackgroundColor: history.map(p => p.kind === "ATH" ? "#22c55e" : p.kind === "ATL" ? "#ef4444" : "#f97316")},
+    {type: "scatter", label: "Turns the rule points at", data: futureTurns.map(t => ({x: decimalYear(t.date), y: lastTop.athPrice})),
+     pointRadius: 4, pointStyle: "triangle",
+     pointBackgroundColor: futureTurns.map(t => t.kind === "ATH" ? "#22c55e" : "#ef4444"), borderColor: "transparent"}]},
   options: {responsive: true, maintainAspectRatio: false,
-    scales: {x: {...axis, type: "linear", min: 2009, max: 2101,
-                 ticks: {color: "#9ca3af", callback: v => Math.round(v)}},
-             y: {...axis, type: "logarithmic", title: {display: true, text: "USD (log)", color: "#9ca3af"},
-                 ticks: {color: "#9ca3af", callback: v => money(v)}}},
+    scales: {x: {...axis, type: "linear", min: 2009, max: 2101, ticks: {color: "#9ca3af", callback: v => Math.round(v)}},
+             y: {...axis, type: "logarithmic", ticks: {color: "#9ca3af", callback: v => money(v)}}},
     plugins: {legend: {labels: {color: "#9ca3af", boxWidth: 12}},
-              tooltip: {callbacks: {label: c => c.dataset.label + ": " + money(c.parsed.y) + " (" + Math.round(c.parsed.x) + ")"}}}}
-});
-
-new Chart(document.getElementById("multChart"), {
-  type: "bar",
-  data: {labels: measured.map(c => "Cycle " + c.cycle).concat(["4 fitted", "5 fitted", "6 fitted"]),
-    datasets: [{label: "Bull multiplier (×)",
-      data: measured.map(c => c.multiple).concat([1, 2, 3].map(n => Math.pow(10, logs[logs.length - 1] * Math.pow(decay, n)))),
-      backgroundColor: measured.map(() => "#22c55e").concat(["#64748b", "#64748b", "#64748b"])}]},
-  options: {responsive: true, maintainAspectRatio: false,
-    scales: {y: {...axis, type: "logarithmic", ticks: {color: "#9ca3af", callback: v => v + "×"}}, x: axis},
-    plugins: {legend: {labels: {color: "#9ca3af"}}}}
-});
-
-// the same real time axis as the price chart: these months are not evenly spaced either
-new Chart(document.getElementById("domChart"), {
-  type: "line",
-  data: {datasets: [{label: "BTC dominance (%)",
-    data: DOMINANCE.map(p => ({x: decimalYear(p.date + "-01"), y: p.dom})),
-    borderColor: "#a855f7", backgroundColor: "rgba(168,85,247,.1)", fill: true, tension: .3, pointRadius: 3}]},
-  options: {responsive: true, maintainAspectRatio: false,
-    scales: {y: {...axis, min: 30, max: 90},
-             x: {...axis, type: "linear", ticks: {color: "#9ca3af", callback: v => Math.round(v)}}},
-    plugins: {legend: {labels: {color: "#9ca3af"}},
-              tooltip: {callbacks: {title: c => c[0].parsed.x.toFixed(1), label: c => c.parsed.y + "%"}}}}
+              tooltip: {callbacks: {label: c => c.datasetIndex === 0
+                ? money(c.parsed.y) + " (" + c.parsed.x.toFixed(1) + ")"
+                : "turn at " + futureTurns[c.dataIndex].date}}}}
 });
 </script>
 </body>
