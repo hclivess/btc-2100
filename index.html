@@ -16,7 +16,7 @@
 <div class="max-w-6xl mx-auto">
 
     <div class="text-center mb-6">
-        <h1 class="text-3xl md:text-4xl font-bold mb-2">The 1064/364 Bitcoin cycle pattern</h1>
+        <h1 class="text-3xl md:text-4xl font-bold mb-2">Total return: 127M%</h1>
         <p class="text-gray-400">Three cycles of evidence, and what extrapolating them honestly implies</p>
         <p id="nextTest" class="text-yellow-300 text-sm mt-2"></p>
     </div>
@@ -25,8 +25,8 @@
     <div class="bg-gray-800 rounded-lg p-4 mb-6">
         <h2 class="text-xl font-semibold mb-3 text-yellow-400">The claim, and what the dates say</h2>
         <p class="text-gray-300 text-sm mb-3">
-            The pattern says a bull run lasts <b>1064 days</b> from the bottom and the bear that follows lasts
-            <b>364 days</b>. Posted on /biz/ in December 2023, it named a date for the next top nearly two years
+            The pattern says a bull run lasts <b id="claimBull"></b> from the bottom and the bear that follows
+            lasts <b id="claimBear"></b>. Posted on /biz/ in December 2023, it named a date for the next top nearly two years
             ahead. That is worth checking rather than celebrating, so here it is checked: every anchor the
             prediction could have been chained from, and how far each lands from the top that actually happened.
         </p>
@@ -52,8 +52,8 @@
         <h2 class="text-xl font-semibold mb-3 text-yellow-400">Where a number for 2100 comes from</h2>
         <p class="text-gray-300 text-sm mb-3">
             Every projection of this kind is an assumption wearing a chart. Each cycle has multiplied the bottom
-            by less than the one before — 116×, then 22×, then 8× — and the two completed drawdowns were both
-            about 80%. What 2100 looks like depends entirely on how those two series are continued, so three
+            by less than the one before — <span id="multiplierList"></span> — and the completed drawdowns were
+            <span id="drawdownList"></span>. What 2100 looks like depends entirely on how those two series are continued, so three
             continuations are drawn, and each says which of its numbers were <b>fitted</b> to the three observed
             cycles and which were simply <b>chosen</b>.
         </p>
@@ -102,8 +102,8 @@
             <li><b>A number for 2100 is an assumption, not a finding.</b> The three continuations above start
                 from identical history and end orders of magnitude apart. Anyone quoting one of them as
                 <i>the</i> projection is quoting their own assumption.</li>
-            <li><b>The bottom the pattern puts in October 2026 has not been confirmed here</b>, and its depth is
-                a guess in every scenario on this page.</li>
+            <li><b>The bottom the pattern points at has not been confirmed here</b> — <span id="caveatNext"></span> —
+                and its depth is a guess in every scenario on this page.</li>
             <li>Pattern extrapolation, published for interest. Not investment advice.</li>
         </ul>
     </div>
@@ -210,7 +210,7 @@ const scenarios = [
   project((i, m) => [fade(m), medianDrop], medianDrop,
     "Drawdowns stay as deep as they have been", "#ef4444",
     "the multiplier decay (×" + decay.toFixed(2) + " a cycle) and both cycle lengths",
-    "that the ~81% drawdown never softens"),
+    `that the ${(medianDrop * 100).toFixed(0)}% drawdown never softens`),
   project((i, m, dr) => [fade(m), dr * decay], medianDrop,
     "Drawdowns soften at the same rate", "#22c55e",
     "the multiplier decay, both cycle lengths and the first drawdown",
@@ -241,10 +241,20 @@ document.getElementById("anchorNote").textContent =
   `actually happened, called about two years ahead. Worst: ${Math.max(...misses)} days. "Exact date" it was not, and ` +
   `what would settle it is which anchor was named in advance: after the fact, one of four can always be chosen.`;
 
+// the prose that quotes numbers is filled from the data, like everything else
+document.getElementById("claimBull").textContent = PATTERN.bullDays + " days";
+document.getElementById("claimBear").textContent = PATTERN.bearDays + " days";
+document.getElementById("multiplierList").textContent =
+  measured.map(c => c.multiple.toFixed(c.multiple >= 100 ? 0 : 0) + "×").join(", then ");
+document.getElementById("drawdownList").textContent =
+  drawdowns.length ? drawdowns.map(x => (x * 100).toFixed(0) + "%").join(" and ") : "not yet measurable";
+
 // the next test of the pattern
 const nextATL = addDays(lastTop.athDate, PATTERN.bearDays);
 const nextATH = addDays(nextATL, PATTERN.bullDays);
 const until = Math.round((d(nextATL) - Date.now()) / DAY);
+document.getElementById("caveatNext").textContent = until > 0
+  ? `it is due on ${nextATL}, ${until} days from now` : `it was due on ${nextATL}`;
 document.getElementById("nextTest").textContent = until > 0
   ? `Next test: the pattern puts the bottom on ${nextATL} — ${until} days away — and the top after it on ${nextATH}.`
   : `The pattern put the bottom on ${nextATL} (${-until} days ago) and puts the next top on ${nextATH}.`;

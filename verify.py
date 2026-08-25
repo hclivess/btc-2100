@@ -71,9 +71,12 @@ def main() -> int:
     # "$425K" for a 2100 projection its own loop never produced. Figures inside the script are computed
     # from the data and are checked by check_page.mjs instead.
     markup = text.split("<script>", 1)[0]
-    typed = re.findall(r"\$[\d][\d,.]*\s?[KMB]?", markup)
+    typed = (re.findall(r"\$[\d][\d,.]*\s?[KMB]?", markup)          # money
+             + re.findall(r"(?<![\w-])\d[\d,.]*\s?%", markup)        # percentages: "127M%" was one of these
+             + re.findall(r"(?<![\w-])\d[\d,.]*\s?×", markup)        # multipliers
+             + re.findall(r"(?<![\w-])\d{3,4}\s?(?:d|days)(?![\w])", markup))   # day counts
     if typed:
-        problems.append(f"hand-typed money figures in the markup: {sorted(set(typed))} — "
+        problems.append(f"hand-typed figures in the markup: {sorted(set(t.strip() for t in typed))} — "
                         "every figure on the page must be computed from the data block")
 
     print()
