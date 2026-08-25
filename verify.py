@@ -72,7 +72,7 @@ def main() -> int:
     # from the data and are checked by check_page.mjs instead.
     markup = text.split("<script>", 1)[0]
     typed = (re.findall(r"\$[\d][\d,.]*\s?[KMB]?", markup)          # money
-             + re.findall(r"(?<![\w-])\d[\d,.]*\s?%", markup)        # percentages: "127M%" was one of these
+             + re.findall(r"(?<![\w-])\d[\d,.]*\s?[KMB]?\s?%", markup)   # percentages, "127M%" included
              + re.findall(r"(?<![\w-])\d[\d,.]*\s?×", markup)        # multipliers
              + re.findall(r"(?<![\w-])\d{3,4}\s?(?:d|days)(?![\w])", markup))   # day counts
     if typed:
