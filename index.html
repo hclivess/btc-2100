@@ -115,14 +115,16 @@ const bullDays = measured.map(c => c.bullDays);
 const bearDays = measured.filter(c => c.bearDays).map(c => c.bearDays);
 
 // the turns from the last top to the end of the century
+// `top` cannot be used here: window.top is unforgeable, so `let top` at the top level of a classic script
+// is a SyntaxError in a browser and takes the whole page down with it.
 const schedule = [];
-let top = lastTop.athDate, n = lastTop.cycle;
-while (+top.slice(0, 4) <= 2100) {
-  const bottom = addDays(top, PATTERN.bearDays);
+let lastKnownTop = lastTop.athDate, n = lastTop.cycle;
+while (+lastKnownTop.slice(0, 4) <= 2100) {
+  const bottom = addDays(lastKnownTop, PATTERN.bearDays);
   const next = addDays(bottom, PATTERN.bullDays);
   if (+bottom.slice(0, 4) > 2100) break;
   schedule.push({cycle: ++n, bottom, top: next});
-  top = next;
+  lastKnownTop = next;
 }
 
 // ============================================================ THE PAGE
@@ -172,7 +174,7 @@ document.getElementById("anchorNote").textContent =
   `fact any of four can be picked.`;
 
 // ============================================================ CHART
-const history = [...PRE_PATTERN.map(p => ({date: p.date, price: p.price, kind: "old"})),
+const pricePoints = [...PRE_PATTERN.map(p => ({date: p.date, price: p.price, kind: "old"})),
   ...CYCLES.flatMap(c => [{date: c.atlDate, price: c.atlPrice, kind: "ATL"},
                           {date: c.athDate, price: c.athPrice, kind: "ATH"}])].sort((a, b) => d(a.date) - d(b.date));
 const axis = {ticks: {color: "#9ca3af"}, grid: {color: "#374151"}};
@@ -181,9 +183,9 @@ const futureTurns = schedule.flatMap(r => [{date: r.bottom, kind: "ATL"}, {date:
                             .filter(t => +t.date.slice(0, 4) <= 2100);
 new Chart(document.getElementById("turnChart"), {
   data: {datasets: [
-    {type: "line", label: "Price at each turn", data: history.map(p => ({x: decimalYear(p.date), y: p.price})),
+    {type: "line", label: "Price at each turn", data: pricePoints.map(p => ({x: decimalYear(p.date), y: p.price})),
      borderColor: "#f97316", backgroundColor: "rgba(249,115,22,.1)", fill: true, tension: .25,
-     pointRadius: 4, pointBackgroundColor: history.map(p => p.kind === "ATH" ? "#22c55e" : p.kind === "ATL" ? "#ef4444" : "#f97316")},
+     pointRadius: 4, pointBackgroundColor: pricePoints.map(p => p.kind === "ATH" ? "#22c55e" : p.kind === "ATL" ? "#ef4444" : "#f97316")},
     {type: "scatter", label: "Turns the rule points at", data: futureTurns.map(t => ({x: decimalYear(t.date), y: lastTop.athPrice})),
      pointRadius: 4, pointStyle: "triangle",
      pointBackgroundColor: futureTurns.map(t => t.kind === "ATH" ? "#22c55e" : "#ef4444"), borderColor: "transparent"}]},

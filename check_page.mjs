@@ -1,27 +1,47 @@
 /**
- * Run the page's own script outside a browser and check what it produces.
+ * Run the page's own script the way a browser runs it, and check what it produces.
  *
  *     node check_page.mjs
  *
- * There are no charts and no DOM here — the point is the arithmetic that fills them. A chart that plots
- * NaN, an Infinity from a division, or a schedule that produces no turns at all are all things that look
- * fine in the source and wrong on the screen, and all three are caught here.
+ * The script is evaluated as **global code in a context holding the browser's unforgeable globals** —
+ * window, self, top, location, document, defined non-configurable exactly as a browser defines them. That
+ * matters: `let top = ...` at the top level of a classic script is a SyntaxError in a browser and takes the
+ * whole page down with it, and an earlier version of this checker missed exactly that by evaluating the
+ * script inside a function, where `top` is just another local name. Everything below the parse is
+ * arithmetic: a chart that plots NaN, a schedule with no turns, a section that renders empty.
  */
 import { readFileSync } from "node:fs";
+import vm from "node:vm";
 
 const html = readFileSync("index.html", "utf8");
 const script = html.split("<script>\n")[1].split("</script>")[0];
 
 const elements = {};
 const charts = [];
-globalThis.document = { getElementById: id => (elements[id] = elements[id] || { innerHTML: "", textContent: "" }) };
-globalThis.Chart = class { constructor(_el, cfg) { charts.push(cfg); } };
+const sandbox = {
+  console, Date, Math, JSON, Number, String, Array, Object, Intl, RegExp, parseInt, parseFloat, isFinite,
+  __document: { getElementById: id => (elements[id] = elements[id] || { innerHTML: "", textContent: "" }) },
+  __Chart: class { constructor(_target, config) { charts.push(config); } },
+};
+vm.createContext(sandbox);
+// defined from inside the context so they are real own properties of its global object — that is what
+// makes `let top` a SyntaxError there, exactly as in a browser
+vm.runInContext(`
+  document = __document; Chart = __Chart;
+  for (const name of ["window", "self", "top", "location", "document", "parent", "frames"]) {
+    Object.defineProperty(globalThis, name, {
+      value: name === "document" ? __document : globalThis, writable: false, configurable: false });
+  }`, sandbox);
 
-const scope = new Function(script.replace(/document\.getElementById\("(\w+Chart)"\)/g, '"$1"') +
-  "\nreturn {schedule, measured, anchors, cycleDays, PATTERN};")();
+try {
+  vm.runInContext(script + "\n;globalThis.__out = {schedule, measured, anchors, cycleDays, PATTERN};", sandbox);
+} catch (error) {
+  console.log("FAILED: the page's script does not run in a browser:", error.constructor.name + ":", error.message);
+  process.exit(1);
+}
 
+const { schedule, measured, anchors, cycleDays, PATTERN } = sandbox.__out;
 const problems = [];
-const { schedule, measured, anchors, cycleDays, PATTERN } = scope;
 
 if (charts.length !== 1) problems.push(`${charts.length} charts built, expected 1`);
 for (const chart of charts) {
@@ -34,31 +54,33 @@ for (const chart of charts) {
     }
   }
 }
+
+// the whole point of the page: every scheduled turn is exactly the rule away from the one before it
 if (!schedule.length) problems.push("the schedule is empty");
-let previous = null;
+let previousTop = null;
 for (const row of schedule) {
-  const bottom = new Date(row.bottom + "T00:00:00Z"), top = new Date(row.top + "T00:00:00Z");
-  const bull = Math.round((top - bottom) / 86400000);
-  if (bull !== PATTERN.bullDays) problems.push(`cycle ${row.cycle}: ${bull} days from bottom to top, not ${PATTERN.bullDays}`);
-  if (previous) {
-    const bear = Math.round((bottom - previous) / 86400000);
+  const bottom = new Date(row.bottom + "T00:00:00Z"), turn = new Date(row.top + "T00:00:00Z");
+  const bull = Math.round((turn - bottom) / 86400000);
+  if (bull !== PATTERN.bullDays) problems.push(`cycle ${row.cycle}: ${bull} days bottom to top, not ${PATTERN.bullDays}`);
+  if (previousTop) {
+    const bear = Math.round((bottom - previousTop) / 86400000);
     if (bear !== PATTERN.bearDays) problems.push(`cycle ${row.cycle}: ${bear} days from the last top, not ${PATTERN.bearDays}`);
   }
   if (+row.bottom.slice(0, 4) > 2100) problems.push(`the schedule runs past 2100: ${row.bottom}`);
-  previous = top;
+  previousTop = turn;
 }
 if (cycleDays !== PATTERN.bullDays + PATTERN.bearDays) problems.push("the cycle length is not the two halves added up");
 if (anchors.length < 2) problems.push("the anchors table has nothing to compare");
 
-for (const key of ["ruleTitle", "ruleLine", "nextTest", "cycleNote", "anchorNote"]) {
+for (const key of ["ruleTitle", "ruleLine", "nextTest", "cycleNote", "anchorNote", "vsBull", "vsBear"]) {
   const text = elements[key]?.textContent || "";
-  if (text.length < 5) problems.push(`the page's "${key}" line came out empty`);
+  if (text.length < 3) problems.push(`the page's "${key}" line came out empty`);
   if (/NaN|undefined|Infinity/.test(text)) problems.push(`the page's "${key}" line contains ${text}`);
 }
 for (const key of ["cycleTable", "scheduleTable", "anchorTable"]) {
-  const html = elements[key]?.innerHTML || "";
-  if (!html.includes("<")) problems.push(`the page's "${key}" came out empty`);
-  if (/NaN|undefined|Infinity/.test(html)) problems.push(`"${key}" contains NaN or undefined`);
+  const markup = elements[key]?.innerHTML || "";
+  if (!markup.includes("<")) problems.push(`the page's "${key}" came out empty`);
+  if (/NaN|undefined|Infinity/.test(markup)) problems.push(`"${key}" contains NaN or undefined`);
 }
 
 console.log(`the rule: ${PATTERN.bullDays} / ${PATTERN.bearDays} = ${cycleDays} days`);
